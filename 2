@@ -1,0 +1,43 @@
+import tensorflow as tf
+from tensorflow.keras import layers, models
+def LeNet():
+    model = models.Sequential([
+        layers.Conv2D(6, (5, 5), activation='tanh', input_shape=(28, 28, 1)),
+        layers.AveragePooling2D(),
+        layers.Conv2D(16, (5, 5), activation='tanh'),
+        layers.AveragePooling2D(),
+        layers.Flatten(),
+        layers.Dense(120, activation='tanh'),
+        layers.Dense(84, activation='tanh'),
+        layers.Dense(10, activation='softmax')
+    ])
+    return model
+# Load and preprocess the MNIST dataset
+from tensorflow.keras.datasets import mnist
+import numpy as np
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train = x_train.reshape(-1, 28, 28, 1).astype('float32') / 255.0
+x_test = x_test.reshape(-1, 28, 28, 1).astype('float32') / 255.0
+# One-hot encode labels
+y_train = tf.keras.utils.to_categorical(y_train, 10)
+y_test = tf.keras.utils.to_categorical(y_test, 10)
+# Define and compile the LeNet model
+model = LeNet()
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+# Train the model
+history = model.fit(x_train, y_train, epochs=20, batch_size=128, validation_data=(x_test, y_test))
+import matplotlib.pyplot as plt
+# Evaluate the model
+test_loss, test_acc = model.evaluate(x_test, y_test)
+print(f"Test Accuracy: {test_acc:.2f}")
+# Predict some images
+predictions = model.predict(x_test[:5])
+predicted_labels = np.argmax(predictions, axis=1)
+# Visualize some MNIST images and their predictions
+plt.figure(figsize=(10, 5))
+for i in range(5):
+    plt.subplot(1, 5, i + 1)
+    plt.imshow(x_test[i].reshape(28, 28), cmap='gray')
+    plt.title(f"Pred: {predicted_labels[i]}")
+    plt.axis('off')
+plt.show()
